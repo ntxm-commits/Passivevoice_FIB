@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>PTE Passive Mastery - Manual Next</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; display: flex; justify-content: center; padding: 40px 20px; }
+        .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 900px; width: 100%; }
+        
+        .hint-tag { 
+            display: inline-block; 
+            background: #fff3cd; 
+            color: #856404; 
+            padding: 12px 25px; 
+            border-radius: 8px; 
+            font-size: 1.6em; 
+            font-weight: 800; 
+            margin-bottom: 25px; 
+            border: 2px solid #ffeeba;
+        }
+
+        .sentence-area { 
+            font-size: 1.4em; 
+            line-height: 2.2; 
+            color: #2c3e50; 
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #fafafa;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+
+        .inline-input {
+            border: none;
+            border-bottom: 3px solid #3498db;
+            background: #eef7fe;
+            font-size: 1em;
+            font-family: inherit;
+            color: #e74c3c;
+            font-weight: bold;
+            text-align: center;
+            outline: none;
+            min-width: 220px;
+            margin: 0 8px;
+            padding: 2px 5px;
+        }
+        
+        .inline-input.correct-style {
+            background: #d4edda;
+            border-bottom-color: #28a745;
+            color: #155724;
+        }
+
+        .btn-container { display: flex; gap: 10px; }
+
+        button { padding: 15px 35px; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: bold; border: none; transition: 0.3s; }
+        
+        #check-btn { background: #2c3e50; color: white; }
+        #check-btn:hover { background: #34495e; }
+
+        #next-btn { background: #28a745; color: white; display: none; } /* Ẩn nút Next lúc đầu */
+        #next-btn:hover { background: #218838; }
+        
+        #result { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; text-align: center; font-weight: bold; font-size: 1.2em; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .progress { color: #7f8c8d; margin-bottom: 10px; font-weight: bold; font-size: 1em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="progress" id="progress-text">Question 1 / 18</div>
+    <div id="hint-tag" class="hint-tag">Loading...</div>
+    
+    <div id="game-area">
+        <div class="sentence-area" id="sentence-container"></div>
+        <div class="btn-container">
+            <button id="check-btn" onclick="checkAnswer()">Check Answer</button>
+            <button id="next-btn" onclick="nextQuestion()">Next Question ➜</button>
+        </div>
+        <div id="result"></div>
+    </div>
+</div>
+
+<script>
+    const data = [
+        { before: "The island", after: "at the south end of the bay.", missing: "is located", hint: "Present Simple - Locate" },
+        { before: "Time and distance", after: "to calculate speed.", missing: "are used", hint: "Present Simple - Use" },
+        { before: "The chemistry building", after: "near the entrance to the campus.", missing: "is located", hint: "Present Simple - Locate" },
+        { before: "Sea levels", after: "to rise during the next century.", missing: "are expected", hint: "Present Simple - Expect" },
+        { before: "Tutorials", after: "in the final week of the term.", missing: "are scheduled", hint: "Present Simple - Schedule" },
+        { before: "Educational level", after: "to be related to social and economic background.", missing: "is found", hint: "Present Simple - Find" },
+        { before: "All dissertations", after: "by a submission form.", missing: "must be accompanied", hint: "Modal: must - Accompany" },
+        { before: "The massive accumulation of data", after: "into a communicable argument.", missing: "was converted", hint: "Past Simple - Convert" },
+        { before: "Measures", after: "to prevent the unemployment rate from increasing.", missing: "must be taken", hint: "Modal: must - Take" },
+        { before: "A group meeting", after: "tomorrow in the library conference room.", missing: "will be held", hint: "Future Simple - Hold" },
+        { before: "All of the assignments", after: "in person to the faculty office.", missing: "must be submitted", hint: "Modal: must - Submit" },
+        { before: "The assignments", after: "to the department office before the deadlines.", missing: "should be submitted", hint: "Modal: should - Submit" },
+        { before: "A new collection of articles", after: ".", missing: "has just been published", hint: "Present Perfect + 'just' - Publish" },
+        { before: "Classical mechanics", after: "as a branch of applied mathematics.", missing: "is sometimes considered", hint: "Present Simple + 'sometimes' - Consider" },
+        { before: "Please note that the seminar", after: ".", missing: "has now been canceled", hint: "Present Perfect + 'now' - Cancel" },
+        { before: "Many university lectures", after: "on the Internet.", missing: "can now be viewed", hint: "Modal: can + 'now' - View" },
+        { before: "Strangely, people", after: "by and skeptical about statistics.", missing: "are simultaneously impressed", hint: "Present Simple + 'simultaneously' - Impress" },
+        { before: "Parents' talk to children tends", after: ".", missing: "to be simplified", hint: "Passive Infinitive (to be + V3) - Simplify" }
+    ];
+
+    let currentIndex = 0;
+
+    function init() {
+        const item = data[currentIndex];
+        document.getElementById('progress-text').innerText = `Question ${currentIndex + 1} / ${data.length}`;
+        document.getElementById('hint-tag').innerText = item.hint;
+        
+        const container = document.getElementById('sentence-container');
+        container.innerHTML = `${item.before} <input type="text" id="user-input" class="inline-input" autocomplete="off"> ${item.after}`;
+        
+        document.getElementById('result').style.display = "none";
+        document.getElementById('check-btn').style.display = "block";
+        document.getElementById('next-btn').style.display = "none";
+        
+        const input = document.getElementById('user-input');
+        input.style.width = Math.max(200, item.missing.length * 13) + "px";
+        input.focus();
+
+        input.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                if (document.getElementById('check-btn').style.display !== "none") {
+                    checkAnswer();
+                } else {
+                    nextQuestion();
+                }
+            }
+        });
+    }
+
+    function checkAnswer() {
+        const input = document.getElementById('user-input');
+        const userInput = input.value.trim().toLowerCase();
+        const correctAnswer = data[currentIndex].missing.toLowerCase();
+        const resultDiv = document.getElementById('result');
+
+        if (userInput === correctAnswer) {
+            resultDiv.className = "success";
+            resultDiv.innerText = "✅ Correct! Now you can move to the next question.";
+            resultDiv.style.display = "block";
+            
+            input.classList.add('correct-style');
+            input.disabled = true; // Khóa ô nhập khi đã đúng
+            
+            document.getElementById('check-btn').style.display = "none";
+            document.getElementById('next-btn').style.display = "block";
+            document.getElementById('next-btn').focus();
+        } else {
+            resultDiv.className = "error";
+            resultDiv.innerText = `❌ Not quite. Check the hint and try again!`;
+            resultDiv.style.display = "block";
+            input.style.borderBottomColor = "#e74c3c";
+        }
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < data.length) {
+            init();
+        } else {
+            document.getElementById('game-area').innerHTML = "<h2 style='text-align:center; color:#27ae60;'>🎉 Well done! You have completed all questions.</h2>";
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
